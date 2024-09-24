@@ -35,7 +35,7 @@ olympics_data
 
 ### 3.1 Basic data (quality) checks
 
-Let's start with checking out the basic structure of our dataset.
+Let's start with checking out the basic structure of our dataset. Here we find 13 variables and 150 observations.
 
 ```{r message = FALSE, warning = FALSE}
 str(olympics_data)
