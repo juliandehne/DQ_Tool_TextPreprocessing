@@ -22,13 +22,13 @@ library(quanteda)
 library(textclean)
 library(tm)
 library(skimr)
-
 ```
 
 Finally, we will then load our artificial dataset from the Olympic summer games.
 
 ```{r message = FALSE, warning = FALSE}
-data("starwars")
+olympics_data <- read_csv("5.modified_olympics_tweets_RT - Copy.csv")
+olympics_data
 ```
 
 # 3. Application of tools and use case
@@ -37,20 +37,20 @@ data("starwars")
 
 Let's start with checking out the basic structure of our dataset.
 
-```{r message = FALSE, warning = FALSE, results='hide'}
-str(starwars)
+```{r message = FALSE, warning = FALSE}
+str(olympics_data)
 ```
 
 ...
 
-```{r message = FALSE, warning=FALSE, results='hide'}
-summary(starwars)
+```{r message = FALSE, warning=FALSE}
+summary(olympics_data)
 ```
 
 When running the `summary()` function, the overview might get a bit messy depending on the size of the dataframe. We therefore recommend R tools, that offer basic data quality reports and arrange the results clearly like the `skimr` package. Here, you can receive an overview of the various variables of our data set including descriptive statistics and missing values.
 
-```{r}
-skim(starwars)
+```{r warning=FALSE}
+skim(olympics_data)
 ```
 
 ### 3.2 Dealing with multiple languages
