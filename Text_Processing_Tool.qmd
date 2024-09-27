@@ -22,6 +22,8 @@ library(quanteda)
 library(textclean)
 library(tm)
 library(skimr)
+library(readr)
+library (dplyr)
 ```
 
 Finally, we will then load our artificial dataset from the Olympic summer games.
@@ -89,9 +91,15 @@ The third option of dealing with multilingual datasets is to translate the non-E
 
 Now, we have created one data set with only English language postings. Next, we want to check is whether the text is correct in terms of spelling. Spelling errors are problematic with regard to text data quality as specific words might not be considered as equal to the correct word by specific methods. We therefore want to check the text data for errors. In R, there are many packages for spelling corrections.
 
+```{r}
+
+```
+
 ### 3.4 Removing stopwords
 
-### 3.5 Removing special characters
+### 3.5 Minor text operations: removing special characters
+
+In text preprocessing of social media data, there are often times certain typical preprocessing steps included like removing special characters or changing capital letters to lower cases.
 
 ### 3.6 Creating a DFM: tokenization and lemmatization
 
