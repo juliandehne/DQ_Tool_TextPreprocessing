@@ -8,7 +8,7 @@
 
 <meta name="author" content="Yannik Peters">
 
-<title>Text preprocessing and data quality</title>
+<title>Comparing Tools and Workflows for Data Quality in Text Preprocessing</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -100,7 +100,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Text preprocessing and data quality</h1>
+<h1 class="title">Comparing Tools and Workflows for Data Quality in Text Preprocessing</h1>
 </div>
 
 
@@ -130,35 +130,42 @@ div.csl-indent {
 </section>
 <section id="set-up" class="level1">
 <h1>2. Set up</h1>
-<p>At first, we will open all relevant libraries. Please make sure to have all relevant packages installed using the <code>install.packages()</code> command. We will be using and comparing the <code>quanteda</code>, <code>stringr</code>, <code>textclean</code> and <code>tm</code>, basically the some of the most important and widely used text processing and analysis packages in R.</p>
+<p>At first, we will open all relevant libraries. Please make sure to have all relevant packages installed using the <code>install.packages()</code> command. We will be using and comparing some of the most important text preprocessing and analysis R packages like <code>quanteda</code>, <code>stringr</code>, <code>textclean</code> or <code>tm</code>. We will also use specific packages like <code>skimr</code>, <code>spelling</code>, <code>polyglotr</code> or <code>deeplr</code> for very specific purposes.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(textclean)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tm)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(textTinyR)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(spelling) </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(hunspell)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(polyglotr)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(deeplr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Finally, we will then load our artificial dataset from the Olympic summer games.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>olympics_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"5.modified_olympics_tweets_RT - Copy.csv"</span>)</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>olympics_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"6.modified_olympics_tweets_RT.csv"</span>, <span class="at">locale =</span> <span class="fu">locale</span>(<span class="at">encoding =</span> <span class="st">"Latin1"</span>))</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>olympics_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 150 × 13
-     No. `Tweet ID` `User ID` Timestamp        Username      Tweet_text Language
-   &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;            &lt;chr&gt;         &lt;chr&gt;      &lt;chr&gt;   
- 1     1        226       139 09-08-2024 20:14 @kimberlyberg "ujst chi… en      
- 2     2      68257       133 31-07-2024 05:42 @colemanjose… "WHAT A R… en      
- 3     3      44351       197 06-08-2024 14:25 @josephmatth… "Just ama… en      
- 4     4      95759       170 08-08-2024 06:41 @randallsmith "RT Uneli… en      
- 5     5      11173       106 27-07-2024 18:19 @scott81      "Feiern, … de      
- 6     6      23334       177 28-07-2024 10:44 @ghall        "RT What … en      
- 7     7      49688       160 04-08-2024 00:40 @shanewheeler "Celebrat… en      
- 8     8      39066       196 01-08-2024 08:25 @kimgraves    "RT od mo… en      
- 9     9      81586       198 31-07-2024 21:03 @theresa59    "RT Celeb… en      
-10    10      45338       134 03-08-2024 09:55 @kennethstok… "Quelle j… fr      
+<pre><code># A tibble: 150 × 14
+     no. tweet_id user_id timestamp        username tweet_text subtopic language
+   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;            &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;   
+ 1     1      226     139 09-08-2024 20:14 @kimber… RT The po… Swimmin… en      
+ 2     2    68257     133 31-07-2024 05:42 @colema… The fight… Doping … en      
+ 3     3    44351     197 06-08-2024 14:25 @joseph… RT THE JO… Gold Me… en      
+ 4     4    95759     170 08-08-2024 06:41 @randal… Quel chem… Gold Me… fr      
+ 5     5    11173     106 27-07-2024 18:19 @scott81 The inten… Wrestli… en      
+ 6     6    23334     177 28-07-2024 10:44 @ghall   RT We mus… Doping … en      
+ 7     7    49688     160 04-08-2024 00:40 @shanew… RT The cu… Gold Me… en      
+ 8     8    39066     196 01-08-2024 08:25 @kimgra… RT Cheeri… Maratho… en      
+ 9     9    81586     198 31-07-2024 21:03 @theres… RT Jede L… Athlete… de      
+10    10    45338     134 03-08-2024 09:55 @kennet… What a ga… Basketb… en      
 # ℹ 140 more rows
-# ℹ 6 more variables: Retweet_count &lt;dbl&gt;, Like_count &lt;dbl&gt;, Reply_count &lt;dbl&gt;,
-#   Quote_count &lt;dbl&gt;, URLs &lt;chr&gt;, Source &lt;chr&gt;</code></pre>
+# ℹ 6 more variables: retweet_count &lt;dbl&gt;, like_count &lt;dbl&gt;, reply_count &lt;dbl&gt;,
+#   quote_count &lt;dbl&gt;, urls &lt;chr&gt;, source &lt;chr&gt;</code></pre>
 </div>
 </div>
 </section>
@@ -170,71 +177,73 @@ div.csl-indent {
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(olympics_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>spc_tbl_ [150 × 13] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
- $ No.          : num [1:150] 1 2 3 4 5 6 7 8 9 10 ...
- $ Tweet ID     : num [1:150] 226 68257 44351 95759 11173 ...
- $ User ID      : num [1:150] 139 133 197 170 106 177 160 196 198 134 ...
- $ Timestamp    : chr [1:150] "09-08-2024 20:14" "31-07-2024 05:42" "06-08-2024 14:25" "08-08-2024 06:41" ...
- $ Username     : chr [1:150] "@kimberlyberg" "@colemanjoseph" "@josephmatthew" "@randallsmith" ...
- $ Tweet_text   : chr [1:150] "ujst chilling..." "WHAT A RACE IN THE 100M SPRINT TODAY! WHO ELSE IS WATCHING? #100MSPRINT #OLYMPICS2024" "Just amazing how the opening ceremony lights up Paris! #Olympics2024 #OpeningCeremony #Paris2024" "RT Unelievable performance as basketball finals are a thrill to watch #Olympics2024 #Basketball2024 #Hoops" ...
- $ Language     : chr [1:150] "en" "en" "en" "en" ...
- $ Retweet_count: num [1:150] 0 0 0 110 0 203 0 112 172 0 ...
- $ Like_count   : num [1:150] 610 774 382 0 489 918 282 222 28 393 ...
- $ Reply_count  : num [1:150] 7 2 10 0 7 7 0 2 1 7 ...
- $ Quote_count  : num [1:150] 1 2 8 0 5 9 8 2 6 2 ...
- $ URLs         : chr [1:150] "https://www.rubio-jones.info/" NA NA "http://www.jones.com/" ...
- $ Source       : chr [1:150] "Twitter Web App" "Twitter Web App" "Twitter for iPhone" "Twitter for iPhone" ...
+<pre><code>spc_tbl_ [150 × 14] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ no.          : num [1:150] 1 2 3 4 5 6 7 8 9 10 ...
+ $ tweet_id     : num [1:150] 226 68257 44351 95759 11173 ...
+ $ user_id      : num [1:150] 139 133 197 170 106 177 160 196 198 134 ...
+ $ timestamp    : chr [1:150] "09-08-2024 20:14" "31-07-2024 05:42" "06-08-2024 14:25" "08-08-2024 06:41" ...
+ $ username     : chr [1:150] "@kimberlyberg" "@colemanjoseph" "@josephmatthew" "@randallsmith" ...
+ $ tweet_text   : chr [1:150] "RT The pool is alive with excitement! Who will claim victory in #SwimmingOlympics? The competition is fierce!  "| __truncated__ "The fight against doping is ongoing! Let's support our athletes by promoting #CleanSport at #Olympics2024. #Dop"| __truncated__ "RT THE JOY OF WINNING A #GOLDMEDAL IS UNMATCHED! WHO ARE YOU SUPPORTING AT #OLYMPICS2024? #OLYMPICS2024 #PARIS2024" "Quel chemin parcouru ! Les gagnants de la #Médaille d'or nous ont tous rendus fiers ! #Olympiques2024 #Médaille"| __truncated__ ...
+ $ subtopic     : chr [1:150] "Swimming Events" "Doping Awareness" "Gold Medal Moments" "Gold Medal Moments" ...
+ $ language     : chr [1:150] "en" "en" "en" "fr" ...
+ $ retweet_count: num [1:150] 175 279 148 136 141 185 115 299 65 271 ...
+ $ like_count   : num [1:150] 610 774 382 0 489 918 282 222 28 393 ...
+ $ reply_count  : num [1:150] 7 2 10 0 7 7 0 2 1 7 ...
+ $ quote_count  : num [1:150] 1 2 8 0 5 9 8 2 6 2 ...
+ $ urls         : chr [1:150] "https://www.rubio-jones.info/" NA NA "http://www.jones.com/" ...
+ $ source       : chr [1:150] "Twitter Web App" "Twitter Web App" "Twitter for iPhone" "Twitter for iPhone" ...
  - attr(*, "spec")=
   .. cols(
-  ..   No. = col_double(),
-  ..   `Tweet ID` = col_double(),
-  ..   `User ID` = col_double(),
-  ..   Timestamp = col_character(),
-  ..   Username = col_character(),
-  ..   Tweet_text = col_character(),
-  ..   Language = col_character(),
-  ..   Retweet_count = col_double(),
-  ..   Like_count = col_double(),
-  ..   Reply_count = col_double(),
-  ..   Quote_count = col_double(),
-  ..   URLs = col_character(),
-  ..   Source = col_character()
+  ..   no. = col_double(),
+  ..   tweet_id = col_double(),
+  ..   user_id = col_double(),
+  ..   timestamp = col_character(),
+  ..   username = col_character(),
+  ..   tweet_text = col_character(),
+  ..   subtopic = col_character(),
+  ..   language = col_character(),
+  ..   retweet_count = col_double(),
+  ..   like_count = col_double(),
+  ..   reply_count = col_double(),
+  ..   quote_count = col_double(),
+  ..   urls = col_character(),
+  ..   source = col_character()
   .. )
  - attr(*, "problems")=&lt;externalptr&gt; </code></pre>
 </div>
 </div>
-<p>…</p>
+<p>Here we find 13 variables and 150 observations.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(olympics_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>      No.            Tweet ID        User ID       Timestamp        
+<pre><code>      no.            tweet_id        user_id       timestamp        
  Min.   :  1.00   Min.   :  226   Min.   :100.0   Length:150        
  1st Qu.: 38.25   1st Qu.:24485   1st Qu.:128.0   Class :character  
  Median : 75.50   Median :49100   Median :149.5   Mode  :character  
  Mean   : 75.50   Mean   :50367   Mean   :151.1                     
  3rd Qu.:112.75   3rd Qu.:73639   3rd Qu.:177.0                     
  Max.   :150.00   Max.   :99451   Max.   :200.0                     
-   Username          Tweet_text          Language         Retweet_count   
- Length:150         Length:150         Length:150         Min.   :  0.00  
- Class :character   Class :character   Class :character   1st Qu.:  0.00  
- Mode  :character   Mode  :character   Mode  :character   Median :  0.00  
-                                                          Mean   : 75.29  
-                                                          3rd Qu.:156.25  
-                                                          Max.   :279.00  
-   Like_count     Reply_count     Quote_count         URLs          
- Min.   :  0.0   Min.   : 0.00   Min.   : 0.000   Length:150        
- 1st Qu.:282.0   1st Qu.: 3.00   1st Qu.: 3.000   Class :character  
- Median :477.0   Median : 7.00   Median : 5.000   Mode  :character  
- Mean   :499.8   Mean   : 6.86   Mean   : 5.207                     
- 3rd Qu.:742.5   3rd Qu.:10.00   3rd Qu.: 8.000                     
- Max.   :977.0   Max.   :15.00   Max.   :10.000                     
-    Source         
- Length:150        
- Class :character  
- Mode  :character  
-                   
-                   
-                   </code></pre>
+   username          tweet_text          subtopic           language        
+ Length:150         Length:150         Length:150         Length:150        
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                            
+                                                                            
+                                                                            
+ retweet_count      like_count     reply_count     quote_count    
+ Min.   :  1.00   Min.   :  0.0   Min.   : 0.00   Min.   : 0.000  
+ 1st Qu.: 82.25   1st Qu.:282.0   1st Qu.: 3.00   1st Qu.: 3.000  
+ Median :150.50   Median :477.0   Median : 7.00   Median : 5.000  
+ Mean   :151.23   Mean   :499.8   Mean   : 6.86   Mean   : 5.207  
+ 3rd Qu.:219.50   3rd Qu.:742.5   3rd Qu.:10.00   3rd Qu.: 8.000  
+ Max.   :299.00   Max.   :977.0   Max.   :15.00   Max.   :10.000  
+     urls              source         
+ Length:150         Length:150        
+ Class :character   Class :character  
+ Mode  :character   Mode  :character  
+                                      
+                                      
+                                      </code></pre>
 </div>
 </div>
 <p>When running the <code>summary()</code> function, the overview might get a bit messy depending on the size of the dataframe. We therefore recommend R tools, that offer basic data quality reports and arrange the results clearly like the <code>skimr</code> package. Here, you can receive an overview of the various variables of our data set including descriptive statistics and missing values.</p>
@@ -254,7 +263,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">13</td>
+<td style="text-align: left;">14</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -266,7 +275,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">character</td>
-<td style="text-align: left;">6</td>
+<td style="text-align: left;">7</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
@@ -308,7 +317,7 @@ div.csl-indent {
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Timestamp</td>
+<td style="text-align: left;">timestamp</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">16</td>
@@ -318,7 +327,7 @@ div.csl-indent {
 <td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Username</td>
+<td style="text-align: left;">username</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">6</td>
@@ -328,17 +337,27 @@ div.csl-indent {
 <td style="text-align: right;">0</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Tweet_text</td>
+<td style="text-align: left;">tweet_text</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">15</td>
-<td style="text-align: right;">129</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: right;">192</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">113</td>
+<td style="text-align: right;">128</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Language</td>
+<td style="text-align: left;">subtopic</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">language</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">2</td>
@@ -347,8 +366,8 @@ div.csl-indent {
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">0</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;">URLs</td>
+<tr class="even">
+<td style="text-align: left;">urls</td>
 <td style="text-align: right;">74</td>
 <td style="text-align: right;">0.51</td>
 <td style="text-align: right;">17</td>
@@ -357,8 +376,8 @@ div.csl-indent {
 <td style="text-align: right;">76</td>
 <td style="text-align: right;">0</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">Source</td>
+<tr class="odd">
+<td style="text-align: left;">source</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">15</td>
@@ -401,7 +420,7 @@ div.csl-indent {
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">No.</td>
+<td style="text-align: left;">no.</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">75.50</td>
@@ -414,7 +433,7 @@ div.csl-indent {
 <td style="text-align: left;">▇▇▇▇▇</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Tweet ID</td>
+<td style="text-align: left;">tweet_id</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">50367.45</td>
@@ -427,7 +446,7 @@ div.csl-indent {
 <td style="text-align: left;">▇▇▇▇▇</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">User ID</td>
+<td style="text-align: left;">user_id</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">151.09</td>
@@ -440,20 +459,20 @@ div.csl-indent {
 <td style="text-align: left;">▆▇▆▇▆</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Retweet_count</td>
+<td style="text-align: left;">retweet_count</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">75.29</td>
-<td style="text-align: right;">94.19</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.0</td>
-<td style="text-align: right;">156.25</td>
-<td style="text-align: right;">279</td>
-<td style="text-align: left;">▇▂▂▂▂</td>
+<td style="text-align: right;">151.23</td>
+<td style="text-align: right;">83.81</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">82.25</td>
+<td style="text-align: right;">150.5</td>
+<td style="text-align: right;">219.50</td>
+<td style="text-align: right;">299</td>
+<td style="text-align: left;">▇▇▇▇▇</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Like_count</td>
+<td style="text-align: left;">like_count</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">499.75</td>
@@ -466,7 +485,7 @@ div.csl-indent {
 <td style="text-align: left;">▆▇▇▇▇</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Reply_count</td>
+<td style="text-align: left;">reply_count</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">6.86</td>
@@ -479,7 +498,7 @@ div.csl-indent {
 <td style="text-align: left;">▇▅▆▃▅</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Quote_count</td>
+<td style="text-align: left;">quote_count</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">5.21</td>
@@ -501,25 +520,240 @@ div.csl-indent {
 <p>As the Olympic games are a transnational media event, it does not come as a surprise to receive a multilingual data set. The basic problem about multilingual data sets is that common CSS research methods like topic modeling or sentiment analysis are expected to be in one language. There are different strategies to deal with multilingual data sets. The chosen strategy has to depend on the specific contexts, the applied methods and the research design and questions. We can basically distinguish three or four main strategies with regard to multilingual data sets (see <span class="citation" data-cites="haukelicht2023">Hauke Licht and Fabienne Lind (<a href="#ref-haukelicht2023" role="doc-biblioref">2023</a>)</span>, <span class="citation" data-cites="lind2021a">Lind et al. (<a href="#ref-lind2021a" role="doc-biblioref">2021</a>)</span>). For this short version, we will discuss three main strategies.</p>
 <p>1) Selecting cases: one language</p>
 <p>This approach is basically about choosing cases that only contain documents in one language. For our Twitter/X data set, we could for instance remove all postings which are not English ones.</p>
-<p>Of course, this strategy might result in a representation error as we systematically exclude content from analysis. So let’s take a look at the other strategies.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>olympics_data_en <span class="ot">&lt;-</span> olympics_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(language <span class="sc">==</span> <span class="st">"en"</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(olympics_data_en<span class="sc">$</span>language)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ en 
+130 </code></pre>
+</div>
+</div>
+<p>Of course, this strategy might result in a representation error as we systematically exclude specific content from analysis (in our case twenty tweets). So let’s take a look at the other strategies.</p>
 <p>2) Multiple single language data sets</p>
-<p>Another way of dealing with multilingual data sets is to create language specific subsamples of our data. The main advantage of this strategy is, that we do not lose any content due to exclusion or translation errors. However, compared to the other methods there are more validation steps required with regard to the each single language data set (for detailed information see <span class="citation" data-cites="haukelicht2023">Hauke Licht and Fabienne Lind (<a href="#ref-haukelicht2023" role="doc-biblioref">2023</a>)</span>, <span class="citation" data-cites="lind2021a">Lind et al. (<a href="#ref-lind2021a" role="doc-biblioref">2021</a>)</span>).</p>
-<p>When we check the language datasets, we only find a few documents that are not in English resulting in some very small language sets. Therefore, this strategy might not be the best with regard to our example data.</p>
+<p>Another way of dealing with multilingual data sets is to create language specific subsamples of our data. The main advantage of this strategy is, that we do not lose any content due to exclusion or translation errors. However, compared to the other methods there are more validation steps required with regard to the each single language data set (for detailed information see <span class="citation" data-cites="haukelicht2023">Hauke Licht and Fabienne Lind (<a href="#ref-haukelicht2023" role="doc-biblioref">2023</a>)</span>, <span class="citation" data-cites="lind2021a">Lind et al. (<a href="#ref-lind2021a" role="doc-biblioref">2021</a>)</span>). As we have already created a data set which only contains English tweets, we will create two more dataframes for German and French tweets.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>olympics_data_de <span class="ot">&lt;-</span> olympics_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(language <span class="sc">==</span> <span class="st">"de"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(olympics_data_de<span class="sc">$</span>language)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+de 
+12 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>olympics_data_fr <span class="ot">&lt;-</span> olympics_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(language <span class="sc">==</span> <span class="st">"fr"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(olympics_data_fr<span class="sc">$</span>language)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+fr 
+ 8 </code></pre>
+</div>
+</div>
+<p>We only find a few documents that are not in English resulting in some very small language sets. Therefore, this strategy might not be the best with regard to our example data.</p>
 <p>3) Translating</p>
-<p>The third option of dealing with multilingual datasets is to translate the non-English speaking tweets into English. As this is a just a small, artificial, sample data set, we could actually translate the few tweets manually. In a real case scenario however, analyzing a data set of millions of tweets, you would usually use a automated translation algorithm or method. The most common translation tools are <code>Google Translator</code> and <code>DeepL</code>. The main advantage of the translation method is to generate one singular data set, which can then be analyzed with one model only. This requires less resources all well. The main disadvantage lies in the potential of translation errors. It is therefore neccesary to evaluate your translation method. For this purpose, let’s translate all non-English comments with both tools in order to compare the results.</p>
+<p>The third option of dealing with multilingual datasets is to translate the non-English speaking tweets into English. As this is a just a small, artificial, sample data set, we could actually translate the few tweets manually. In a real case scenario however, analyzing a data set of millions of tweets, you would usually use a automated translation algorithm or method. The most common translation tools are <code>Google Translator</code> and <code>DeepL</code>. The main advantage of the translation method is to generate one singular data set, which can then be analyzed with one model only. This requires less resources all well. The main disadvantage lies in the potential of translation errors. It is therefore necessary to evaluate your translation method. For this purpose, let’s translate all non-English comments with both tools in order to compare the results. First, we will use the <code>polyglotr</code> and the <code>deeplr</code> package to translate the German text.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Translation of German posts and creation of translated dataframe using Google Translate</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>translation_google_de <span class="ot">&lt;-</span> <span class="fu">google_translate</span>(olympics_data_de<span class="sc">$</span>tweet_text, <span class="at">target_language =</span> <span class="st">"en"</span>, <span class="at">source_language =</span> <span class="st">"de"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>translation_google_de <span class="ot">&lt;-</span> <span class="fu">sapply</span>(translation_google_de, <span class="cf">function</span>(x) x[[<span class="dv">1</span>]])</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>olympics_data_de_google <span class="ot">&lt;-</span> olympics_data_de</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>olympics_data_de_google<span class="sc">$</span>tweet_text <span class="ot">&lt;-</span> translation_google_de</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To access the DeepL API, you currently need a developer account. You can use this <a href="https://www.deepl.com/en/pro/change-plan#developer">link</a> to get to the registration page. A free account can translate up to 500,000 characters per month and gives you access to the DeepL Rest API. In order to translate our text using DeepL in R, you first need this API-key. When signing up for a developer account, you automatically receive such a key.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Translation of German posts and creation of translated dataframe using DeepL</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>translation_deepl_de <span class="ot">&lt;-</span> <span class="fu">translate2</span>(olympics_data_de<span class="sc">$</span>tweet_text, <span class="at">target_lang =</span> <span class="st">"EN"</span>, <span class="at">auth_key =</span> my_key)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>olympics_data_de_deepl <span class="ot">&lt;-</span> olympics_data_de</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>olympics_data_de_deepl<span class="sc">$</span>tweet_text <span class="ot">&lt;-</span> translation_deepl_de</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For this code to work, make sure that you create a my_key object containing your API key.</p>
+<p>my_key &lt;- “Your key”</p>
+</div>
+</div>
+<p>Let’s compare the results for the German tweets.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(olympics_data_de_google<span class="sc">$</span>tweet_text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "RT Every achievement at #Olympics2024 underlines the hard work and dedication of our athletes! #Athletes #Olympiade2024 #Paris2024"                                        
+[2] "RT What a journey it was! The #goldmedalists made us all proud! #Olympiade2024 #Goldmedal #Olympiade2024 #Paris2024"                                                       
+[3] "Integrity in sport is important! Let's promote fair competition and say no to doping! #DopingSkandal #Olympics2024 #DopingSkandal #SayNoToDoping #CleanSport #Olympics2024"
+[4] "History will be made at the #SwimmingOlympics! Every stroke counts as athletes dive for glory! #GoldMedal #SwimmingOlympics #Olympics2024 #GoldMedal"                      
+[5] "It's unbelievable what's possible in #basketball! Who's your favorite team? #Olympiade2024 #Basketball #Olympiade2024 #Paris2024"                                          
+[6] "RT The teamwork in #basketball is incredible! Go for gold! #Olympiade2024 #Basketball #Olympiade2024 #Paris2024"                                                           </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(olympics_data_de_deepl<span class="sc">$</span>tweet_text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "RT Every performance at #Olympics2024 highlights the hard work and dedication of our athletes! #athletes #Olympics2024 #Paris2024"                                         
+[2] "RT What a journey it's been! The #goldmedal winners have made us all proud! #Olympics2024 #goldmedal #Olympics2024 #Paris2024"                                             
+[3] "Integrity in sport is important! Let's promote fair competition and say no to doping! #DopingScandal #Olympics2024 #DopingScandal #SayNoToDoping #CleanSport #Olympics2024"
+[4] "History is being made at the #SwimmingOlympics! Every stroke counts as athletes dive for glory! #GoldMedal #SwimmingOlympics #Olympics2024 #GoldMedal"                     
+[5] "It's unbelievable what's possible in #basketball! Who's your favorite team? #Olympiad2024 #Basketball #Olympiad2024 #Paris2024"                                            
+[6] "RT The teamwork in #basketball is incredible! Go for gold! #Olympics2024 #Basketball #Olympics2024 #Paris2024"                                                             </code></pre>
+</div>
+</div>
+<p>We can see from a quick comparison that the translations seem pretty similar. We can also use certain metric to determine the degree of similarity. For this example, we will apply <a href="https://towardsdatascience.com/overview-of-text-similarity-metrics-3397c4601f50">cosine similarity</a>. First, we have to <code>unlist</code> our text data, as the <code>COS_TEXT</code> function of the <code>textTidyR</code> package requires a vector as an input.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>google_translation_de <span class="ot">&lt;-</span> <span class="fu">unlist</span>(translation_google_de)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>deepl_translation_de <span class="ot">&lt;-</span> <span class="fu">unlist</span>(translation_deepl_de)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>cosine_similarities <span class="ot">&lt;-</span> <span class="fu">COS_TEXT</span>(google_translation_de, deepl_translation_de, <span class="at">separator =</span> <span class="st">" "</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>cosine_similarities</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 0.7789808 0.5025189 0.8333333 0.9047619 0.7500000 0.7500000 0.9622504
+ [8] 0.9164397 0.7619048 1.0000000 0.7735268 0.8858796</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(cosine_similarities)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8182997</code></pre>
+</div>
+</div>
+<p>With a mean cosine similarity of 0.82 on a scale from 0 to 1, the translations of Google Translate and DeepL are indeed very similar. We can do the very same for the French postings.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Translation of French posts and creation of translated dataframe using Google Translate</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>translation_google_fr <span class="ot">&lt;-</span> <span class="fu">google_translate</span>(olympics_data_fr<span class="sc">$</span>tweet_text, <span class="at">target_language =</span> <span class="st">"en"</span>, <span class="at">source_language =</span> <span class="st">"fr"</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>translation_google_fr <span class="ot">&lt;-</span> <span class="fu">sapply</span>(translation_google_fr, <span class="cf">function</span>(x) x[[<span class="dv">1</span>]])</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>olympics_data_fr_google <span class="ot">&lt;-</span> olympics_data_fr</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>olympics_data_fr_google<span class="sc">$</span>tweet_text <span class="ot">&lt;-</span> translation_google_fr</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="co">#Translation of French posts and creation of translated dataframe using DeepL</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>translation_deepl_fr <span class="ot">&lt;-</span> <span class="fu">translate2</span>(olympics_data_fr<span class="sc">$</span>tweet_text, <span class="at">target_lang =</span> <span class="st">"EN"</span>, <span class="at">auth_key =</span> my_key)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>olympics_data_fr_deepl <span class="ot">&lt;-</span> olympics_data_fr</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>olympics_data_fr_deepl<span class="sc">$</span>tweet_text <span class="ot">&lt;-</span> translation_deepl_fr</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="co">#compare Google Translate und Deepl translation manually</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>olympics_data_fr_google<span class="sc">$</span>tweet_text</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "What a journey! The #GoldMedal winners made us all proud! #Olympics2024 #GoldMedal #Olympics2024 #Paris2024"                                                          
+[2] "Integrity in sport matters! Let's promote fair competition and say no to doping! #DopingScandal #Olympics2024 #DopingScandal #SayNoToDoping #CleanSport #Olympics2024"
+[3] "Every takedown counts! The competitive spirit is alive at #Wrestling2024! #Olympics2024 #Lutte2024 #Olympics2024 #Paris2024"                                          
+[4] "What a journey we have come! Join us for the #ClosingCeremony2024 to relive these magical moments. #ClosingCeremony2024 #Olympics2024"                                
+[5] "The teamwork shown in #Basketball is incredible! Go for gold! #Olympics2024 #Basketball #Olympics2024 #Paris2024"                                                     
+[6] "What a display of talent! These athletes are making their mark at the #Olympics2024! #athletes #Olympics2024 #Paris2024"                                              
+[7] "RT Let's celebrate the athletes who made their dreams come true by winning gold medals! #GoldMedal #Olympics2024 #Paris2024"                                          
+[8] "Exciting moments await us in #Basketball at the #Olympics2024! Let the games begin! #Basketball #Olympics2024 #Paris2024"                                             </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>olympics_data_fr_deepl<span class="sc">$</span>tweet_text</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "What a long way we've come! The #GoldMedal winners made us all proud! #Olympics2024 #Gold Medal #Olympics2024 #Paris2024"                                                  
+[2] "Integrity in sport is important! Let's promote fair competition and say no to doping! #DopingScandal #Olympics2024 #DopingScandal #SayNoToDoping #CleanSport #Olympics2024"
+[3] "Every takedown counts! The competitive spirit is alive and well at #Wrestling2024! #Olympiques2024 #Wrestling2024 #Olympiques2024 #Paris2024"                              
+[4] "What a journey we've made! Join us for the #ClosingCeremony2024 to relive those magical moments. #ClosingCeremony2024 #Olympics2024"                                       
+[5] "The teamwork shown by #Basketball is incredible! Go for the gold! #Olympiques2024 #Basketball #Olympiques2024 #Paris2024"                                                  
+[6] "What a display of talent! These athletes are making their mark at the #Olympics2024! #athletes #Olympics2024 #Paris2024"                                                   
+[7] "RT Let's celebrate the athletes who made their dreams come true by winning gold medals! #GoldMedal #Olympics2024 #Paris2024"                                               
+[8] "Exciting moments await us in #Basketball at the #Olympics2024! Let the games begin! #Basketball #Olympiques2024 #Paris2024"                                                </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">#unlist french translation data</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>google_translation_fr <span class="ot">&lt;-</span> <span class="fu">unlist</span>(translation_google_fr)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>deepl_translation_fr <span class="ot">&lt;-</span> <span class="fu">unlist</span>(translation_deepl_fr)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="co">#calculate cosine similarities for French translation data</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>cosine_similarities <span class="ot">&lt;-</span> <span class="fu">COS_TEXT</span>(google_translation_fr, deepl_translation_fr, <span class="at">separator =</span> <span class="st">" "</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>cosine_similarities</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.7905694 0.9363822 0.6481812 0.8207827 0.7029595 1.0000000 1.0000000
+[8] 0.9500000</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(cosine_similarities)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8561094</code></pre>
+</div>
+</div>
+<p>With an average cosine similarity of 0.86, it is slightly higher for the French than the German translation.</p>
+<p>The key question for us is now: Do we want to use the translation of DeepL or Google Translate? Generally, DeepL is considered to be more accurate then Google Translate (like <a href="https://www.geeksforgeeks.org/deepl-vs-google/">here</a>). In current research, both tools are considered applicable. For the translation of Spanish idiomatic expressions into English, <span class="citation" data-cites="hidalgo-ternero2021">Hidalgo-Ternero (<a href="#ref-hidalgo-ternero2021" role="doc-biblioref">2021</a>)</span> find DeepL with an average accuracy rate of 89% slighty better than Google Translate with 86%. <span class="citation" data-cites="sebo2024">Sebo and Lucia (<a href="#ref-sebo2024" role="doc-biblioref">2024</a>)</span> do not find significant differences in the accuracy of both tools. One of the major advantages of Google Translate is that it can be applied to significantly more languages than DeepL. As we only have two languages to translate in our case, we will use the DeepL translation here.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>olympics_data_en_full <span class="ot">&lt;-</span> <span class="fu">rbind</span>(olympics_data_en, olympics_data_de_deepl, olympics_data_fr_deepl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="identifying-misspelling" class="level3">
-<h3 class="anchored" data-anchor-id="identifying-misspelling">3.3 Identifying misspelling</h3>
-<p>Now, we have created one data set with only English language postings. Next, we want to check is whether the text is correct in terms of spelling. Spelling errors are problematic with regard to text data quality as specific words might not be considered as equal to the correct word by specific methods. We therefore want to check the text data for errors. In R, there are many packages for spelling corrections.</p>
+<section id="minor-text-operations-removing-special-characters" class="level3">
+<h3 class="anchored" data-anchor-id="minor-text-operations-removing-special-characters">3.3 Minor text operations: removing special characters</h3>
 </section>
 <section id="removing-stopwords" class="level3">
 <h3 class="anchored" data-anchor-id="removing-stopwords">3.4 Removing stopwords</h3>
+<p>In text preprocessing of social media data, there are often times certain typical preprocessing steps included like removing special characters or changing capital letters to lower cases.</p>
 </section>
-<section id="removing-special-characters" class="level3">
-<h3 class="anchored" data-anchor-id="removing-special-characters">3.5 Removing special characters</h3>
+<section id="identifying-misspelling" class="level3">
+<h3 class="anchored" data-anchor-id="identifying-misspelling">3.5 Identifying misspelling</h3>
+<p>Now, we have created one data set with only English language postings. Next, we want to check is whether the text is correct in terms of spelling. Spelling errors are problematic with regard to text data quality as specific words might not be considered as equal to the correct word by specific methods. We therefore want to check the text data for errors. In R, there are many packages for spelling corrections.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to check spelling and return misspelled words with line numbers and corrections on the basis of hunspell dictionary</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>check_spelling_and_correct <span class="ot">&lt;-</span> <span class="cf">function</span>(text) { </span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Use spell_check_text function from the spelling package </span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>misspelled <span class="ot">&lt;-</span> <span class="fu">spell_check_text</span>(text) </span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(misspelled) <span class="sc">&gt;</span> <span class="dv">0</span>) { </span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a string of misspelled words with their positions </span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>misspelled_str <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(misspelled), <span class="cf">function</span>(i) { </span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="fu">paste0</span>(misspelled<span class="sc">$</span>word[i], <span class="st">" ("</span>, <span class="fu">paste</span>(misspelled<span class="sc">$</span>found[[i]], <span class="at">collapse =</span> <span class="st">","</span>), <span class="st">")"</span>) </span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>}), <span class="at">collapse =</span> <span class="st">"; "</span>) </span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate suggestions for misspelled words </span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>suggestions <span class="ot">&lt;-</span> <span class="fu">hunspell_suggest</span>(misspelled<span class="sc">$</span>word) </span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>corrections <span class="ot">&lt;-</span> <span class="fu">sapply</span>(suggestions, <span class="cf">function</span>(x) <span class="fu">ifelse</span>(<span class="fu">length</span>(x) <span class="sc">&gt;</span> <span class="dv">0</span>, x[<span class="dv">1</span>], <span class="cn">NA</span>)) </span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a string of corrections </span></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>corrections_str <span class="ot">&lt;-</span> <span class="fu">paste</span>(corrections, <span class="at">collapse =</span> <span class="st">"; "</span>) </span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a><span class="fu">return</span>(<span class="fu">list</span>(<span class="at">misspelled =</span> misspelled_str, <span class="at">corrections =</span> corrections_str)) </span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> { </span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a><span class="fu">return</span>(<span class="fu">list</span>(<span class="at">misspelled =</span> <span class="cn">NA_character_</span>, <span class="at">corrections =</span> <span class="cn">NA_character_</span>))}} </span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the spelling check and correction to each tweet </span></span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>olympics_data_new <span class="ot">&lt;-</span> olympics_data_en_full <span class="sc">%&gt;%</span> </span>
+<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="at">Spelling_Check =</span> <span class="fu">lapply</span>(tweet_text, check_spelling_and_correct), </span>
+<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a><span class="at">Misspelled_Words =</span> <span class="fu">sapply</span>(Spelling_Check, <span class="cf">function</span>(x) x<span class="sc">$</span>misspelled), </span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a><span class="at">Corrected_Spellings =</span> <span class="fu">sapply</span>(Spelling_Check, <span class="cf">function</span>(x) x<span class="sc">$</span>corrections)) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(<span class="sc">-</span>Spelling_Check)  <span class="co"># Remove the intermediate column </span></span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a><span class="co"># View the results </span></span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(olympics_data_new[<span class="fu">c</span>(<span class="st">"tweet_text"</span>, <span class="st">"Misspelled_Words"</span>, <span class="st">"Corrected_Spellings"</span>)]) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  tweet_text                                Misspelled_Words Corrected_Spellings
+  &lt;chr&gt;                                     &lt;chr&gt;            &lt;chr&gt;              
+1 RT The pool is alive with excitement! Wh… SwimmingOlympic… Swimming Olympics  
+2 The fight against doping is ongoing! Let… CleanSport (1);… Clean Sport; Dopin…
+3 RT THE JOY OF WINNING A #GOLDMEDAL IS UN… GOLDMEDAL (1)    GOLD MEDAL         
+4 The intensity of the #Wrestling2024 matc… &lt;NA&gt;             &lt;NA&gt;               
+5 RT We must stand united against doping! … CleanSport (1);… Clean Sport; Dopin…
+6 RT The culmination of years of effort re… GoldMedal (1)    Gold Medal         </code></pre>
+</div>
+</div>
 </section>
 <section id="creating-a-dfm-tokenization-and-lemmatization" class="level3">
 <h3 class="anchored" data-anchor-id="creating-a-dfm-tokenization-and-lemmatization">3.6 Creating a DFM: tokenization and lemmatization</h3>
+</section>
+<section id="lda-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="lda-analysis">3.7 LDA Analysis</h3>
 </section>
 </section>
 <section id="discussion" class="level1">
@@ -537,8 +771,14 @@ Hauke Licht, and Fabienne Lind. 2023. <span>“Going Cross-Lingual: A Guide to M
 <div id="ref-hepp2015" class="csl-entry" role="listitem">
 Hepp, Andreas. 2015. <span>“Transcultural Communication,”</span> June. <a href="https://doi.org/10.1002/9781394261390">https://doi.org/10.1002/9781394261390</a>.
 </div>
+<div id="ref-hidalgo-ternero2021" class="csl-entry" role="listitem">
+Hidalgo-Ternero, Carlos Manuel. 2021. <span>“Google Translate Vs. DeepL.”</span> <em>MonTI. Monografías de Traducción e Interpretación</em>, January, 154–77. <a href="https://doi.org/10.6035/monti.2020.ne6.5">https://doi.org/10.6035/monti.2020.ne6.5</a>.
+</div>
 <div id="ref-lind2021a" class="csl-entry" role="listitem">
 Lind, Fabienne, Jakob-Moritz Eberl, Olga Eisele, Tobias Heidenreich, Sebastian Galyga, and Hajo G. Boomgaarden. 2021. <span>“Building the Bridge: Topic Modeling for Comparative Research.”</span> <em>Communication Methods and Measures</em> 16 (2): 96–114. <a href="https://doi.org/10.1080/19312458.2021.1965973">https://doi.org/10.1080/19312458.2021.1965973</a>.
+</div>
+<div id="ref-sebo2024" class="csl-entry" role="listitem">
+Sebo, Paul, and Sylvain de Lucia. 2024. <span>“Performance of Machine Translators in Translating French Medical Research Abstracts to English: A Comparative Study of DeepL, Google Translate, and CUBBITT.”</span> Edited by Iftikhar Ahmed Khan. <em>PLOS ONE</em> 19 (2): e0297183. <a href="https://doi.org/10.1371/journal.pone.0297183">https://doi.org/10.1371/journal.pone.0297183</a>.
 </div>
 <div id="ref-sen2021" class="csl-entry" role="listitem">
 Sen, Indira, Fabian Flöck, Katrin Weller, Bernd Weiß, and Claudia Wagner. 2021. <span>“A Total Error Framework for Digital Traces of Human Behavior on Online Platforms.”</span> <em>Public Opinion Quarterly</em> 85 (S1): 399–422. <a href="https://doi.org/10.1093/poq/nfab018">https://doi.org/10.1093/poq/nfab018</a>.
